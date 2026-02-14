@@ -14,6 +14,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # ESTA LINHA ABAIXO RESOLVE O ERRO 126 (PERMISSION DENIED)
       - name: Dar Permissao ao Gradlew
         run: chmod +x gradlew
 
