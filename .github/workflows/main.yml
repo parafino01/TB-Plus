@@ -1,24 +1,28 @@
 name: Gerar_APK_Final
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Baixar o Codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # Este comando FABRICA o gradlew que está te dando erro de permissão
-      - name: Criar Motor Gradle
-        run: gradle wrapper
+      - name: Dar Permissao ao Gradlew
+        run: chmod +x gradlew
 
-      - name: Compilar
+      - name: Compilar APK
         run: ./gradlew assembleDebug
 
-      - name: Download
+      - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
-          name: AppInstalador
+          name: MeuAppPronto
           path: app/build/outputs/apk/debug/*.apk
+          
