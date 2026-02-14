@@ -14,9 +14,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # ESTA LINHA ABAIXO RESOLVE O ERRO 126 (PERMISSION DENIED)
-      - name: Dar Permissao ao Gradlew
-        run: chmod +x gradlew
+      # PASSO CHAVE: Ele cria um novo gradlew com permissão total
+      - name: Gerar Motor Gradle e Dar Permissao
+        run: |
+          gradle wrapper
+          chmod +x gradlew
 
       - name: Compilar APK
         run: ./gradlew assembleDebug
@@ -24,6 +26,5 @@ jobs:
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
-          name: MeuAppPronto
+          name: AppInstalador
           path: app/build/outputs/apk/debug/*.apk
-          
