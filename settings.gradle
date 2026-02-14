@@ -1,0 +1,2 @@
+rootProject.name = "meu_app_offline"
+include ':app'
