@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TB-CONTROL TOTAL EXCEL</title>
+    
+    <style>
+        :root {
+            --primary: #0A2E26;
+            --bg: #F0F4F3;
+            --accent: #0A6A5E;
+            --text: #2D3748;
+            --danger: #C53030;
+            --success: #2F855A;
+            --shadow: 0 4px 12px rgba(0,0,0,0.12);
+            --excel: #217346;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 100px; }
+
+        header { 
+            background: var(--primary); padding: 15px 20px; 
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .app-title { color: white; font-weight: 800; font-size: 18px; }
+        .search-box { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 15px; width: 50%; }
+        .search-box input { background: transparent; border: none; color: white; width: 100%; outline: none; font-size: 14px; }
+
+        .utility-bar { padding: 12px 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-util { flex: 1; padding: 12px; border-radius: 10px; border: none; background: white; font-size: 11px; font-weight: 700; color: var(--primary); box-shadow: var(--shadow); cursor: pointer; }
+        .btn-excel { background: var(--excel) !important; color: white !important; }
+
+        .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px 15px; }
+        .db-card { background: white; border-radius: 14px; padding: 15px; border-bottom: 5px solid #cbd5e0; box-shadow: var(--shadow); }
+        .db-card h3 { margin: 0; font-size: 10px; color: var(--accent); text-transform: uppercase; font-weight: 900; }
+        .db-val { font-size: 26px; font-weight: 900; margin-top: 4px; }
+
+        .lista { padding: 0 20px; }
+        .p-card { background: white; border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow); border-left: 6px solid var(--accent); position: relative; }
+        .p-card.alerta-bk { border-left-color: var(--danger); background: #FFF5F5; }
+        .p-name { font-size: 18px; font-weight: 800; margin: 5px 0; color: var(--primary); }
+        .tag { font-size: 9px; padding: 4px 8px; border-radius: 5px; color: white; font-weight: 800; text-transform: uppercase; margin-right: 4px; display: inline-block; }
+
+        .modal { display: none; position: fixed; z-index: 3000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background: white; margin: 5% auto; padding: 25px; width: 92%; max-height: 88vh; border-radius: 28px; overflow-y: auto; }
+        label { font-size: 11px; font-weight: 900; color: #718096; display: block; margin-top: 15px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px; margin: 5px 0; border: 1.5px solid #E2E8F0; border-radius: 12px; font-size: 16px; background: #F9FAFB; }
+        .btn-save { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: 800; margin-top: 20px; font-size: 16px; }
+
+        .bk-check-area { background: #EDF2F7; padding: 18px; border-radius: 15px; margin: 15px 0; }
+        .check-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-weight: 700; }
+        .check-item input { width: 24px; height: 24px; margin: 0; }
+
+        .btn-fab { position: fixed; bottom: 30px; right: 25px; width: 65px; height: 65px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: none; z-index: 2000; font-size: 35px; color: var(--accent); font-weight: bold; }
+        #fileInput { display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="app-title">TB-CONTROL</div>
+    <div class="search-box"><input type="text" id="busca" placeholder="🔎 NID ou Nome" onkeyup="renderizar()"></div>
+</header>
+
+<div class="utility-bar">
+    <button class="btn-util btn-excel" onclick="exportarExcel()">📊 Exportar Excel</button>
+    <button class="btn-util" onclick="document.getElementById('fileInput').click()">📥 Importar Excel</button>
+    <button class="btn-util" style="background:#2b6cb0; color:white" onclick="abrirFiltros()">📋 Relatório Excel</button>
+    <input type="file" id="fileInput" accept=".csv" onchange="importarExcel(event)">
+</div>
+
+<div class="db-grid">
+    <div class="db-card" style="border-color:var(--accent)"><h3>Ativos</h3><div class="db-val" id="at">0</div></div>
+    <div class="db-card" style="border-color:#3182CE"><h3>Curados</h3><div class="db-val" id="cu">0</div></div>
+    <div class="db-card" style="border-color:#E53E3E"><h3>Abandono</h3><div class="db-val" id="ab">0</div></div>
+    <div class="db-card" style="border-color:#DD6B20"><h3>HIV+</h3><div class="db-val" id="hi">0</div></div>
+</div>
+
+<div id="lista" class="lista"></div>
+
+<button class="btn-fab" onclick="abrirModalRegisto()">+</button>
+
+<div id="modalRegisto" class="modal">
+    <div class="modal-content">
+        <h2 id="modalRegTitle" style="margin:0">Nova Admissão</h2>
+        <label>NID</label><input type="text" id="nid">
+        <label>Nome Completo</label><input type="text" id="nome">
+        <div style="display:flex; gap:10px">
+            <div style="flex:1"><label>Idade</label><input type="number" id="idade"></div>
+            <div style="flex:1"><label>Sexo</label><select id="sexo"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+        </div>
+        <label>Forma de Diagnóstico</label>
+        <select id="diagnostico">
+            <option value="Bacteriológico">Bacteriológico (GeneXpert/Bacilo)</option>
+            <option value="Clínico">Clínico</option>
+        </select>
+        <label>Tipo TB</label>
+        <select id="tipo_tb" onchange="atualizarRegimes()">
+            <option value="Sensível">TB Sensível</option>
+            <option value="Resistente">TB Resistente</option>
+        </select>
+        <label>Regime</label><select id="regime"></select>
+        <label>HIV</label><select id="hiv"><option value="Negativo">Negativo</option><option value="Positivo">Positivo</option></select>
+        <label>Data de Início</label><input type="date" id="data_inicio">
+        <button class="btn-save" id="btnSalvar" onclick="salvarPaciente()">💾 GUARDAR REGISTO</button>
+        <button onclick="fecharModais()" style="width:100%; border:none; background:none; margin-top:15px; color:gray">CANCELAR</button>
+    </div>
+</div>
+
+<div id="modalStatus" class="modal">
+    <div class="modal-content">
+        <h2 id="st_nome" style="margin:0"></h2>
+        <p id="st_nid" style="color:gray; font-size:12px; margin-bottom:10px"></p>
+        
+        <button onclick="editarPaciente()" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--accent); background:none; color:var(--accent); font-weight:bold; margin-bottom:15px">📝 EDITAR DADOS DO REGISTO</button>
+
+        <div class="bk-check-area">
+            <div class="check-item"><input type="checkbox" id="checkBK2"> <label for="checkBK2">BK 2º Mês Realizado</label></div>
+            <div class="check-item"><input type="checkbox" id="checkBK5"> <label for="checkBK5">BK 5º Mês Realizado</label></div>
+        </div>
+        <label>Estado Clínico</label>
+        <select id="novoEstado">
+            <option value="Ativo">Ativo</option>
+            <option value="Curado">Curado</option>
+            <option value="Abandono">Abandono</option>
+            <option value="Óbito">Óbito</option>
+        </select>
+        <button class="btn-save" onclick="confirmarStatus()">SALVAR ALTERAÇÕES</button>
+        <button onclick="eliminarPaciente()" style="width:100%; color:red; border:none; background:none; margin-top:15px; font-size:12px">ELIMINAR PACIENTE</button>
+        <button onclick="fecharModais()" style="width:100%; border:none; background:none; margin-top:15px; color:gray">VOLTAR</button>
+    </div>
+</div>
+
+<div id="modalFiltros" class="modal">
+    <div class="modal-content">
+        <h2>Relatório Sugestivo (Excel)</h2>
+        <label>Início (De):</label><input type="date" id="f_de">
+        <label>Fim (Até):</label><input type="date" id="f_ate">
+        <button class="btn-save" style="background:var(--excel)" onclick="exportarExcel(true)">GERAR PLANILHA COM DATAS</button>
+        <button onclick="fecharModais()" style="width:100%; border:none; background:none; margin-top:15px; color:gray">FECHAR</button>
+    </div>
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('tb_final_excel_v1')) || [];
+    let idSel = null;
+    let editando = false;
+
+    // --- Lógica de Limpeza ---
+    function limparCampos() {
+        ['nid','nome','idade','data_inicio'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('sexo').value = 'M';
+        document.getElementById('diagnostico').value = 'Bacteriológico';
+        document.getElementById('tipo_tb').value = 'Sensível';
+        document.getElementById('hiv').value = 'Negativo';
+        atualizarRegimes();
+    }
+
+    function atualizarRegimes() {
+        const t = document.getElementById('tipo_tb').value;
+        const r = document.getElementById('regime');
+        r.innerHTML = t === "Sensível" ? "<option value='4HRZE/2HR'>4HRZE/2HR</option><option value='3HRZ+E/2HR'>3HRZ+E/2HR</option>" : "<option value='BPaL'>BPaL</option><option value='Longo'>Regime Longo</option>";
+    }
+    atualizarRegimes();
+
+    function fecharModais() { 
+        document.querySelectorAll('.modal').forEach(m => m.style.display='none'); 
+        editando = false; 
+    }
+    
+    function abrirModalRegisto() { 
+        editando = false;
+        idSel = null;
+        limparCampos();
+        document.getElementById('modalRegTitle').innerText = "Nova Admissão";
+        document.getElementById('btnSalvar').innerText = "💾 GUARDAR REGISTO";
+        document.getElementById('modalRegisto').style.display='block'; 
+    }
+
+    function abrirFiltros() { document.getElementById('modalFiltros').style.display='block'; }
+
+    function salvarPaciente() {
+        const pData = {
+            nid: document.getElementById('nid').value,
+            nome: document.getElementById('nome').value,
+            idade: document.getElementById('idade').value,
+            sexo: document.getElementById('sexo').value,
+            diagnostico: document.getElementById('diagnostico').value,
+            tipo: document.getElementById('tipo_tb').value,
+            regime: document.getElementById('regime').value,
+            hiv: document.getElementById('hiv').value,
+            inicio: document.getElementById('data_inicio').value
+        };
+
+        if(!pData.nid || !pData.nome || !pData.inicio) return alert("Preencha NID, Nome e Data!");
+
+        if(editando) {
+            const index = db.findIndex(x => x.id === idSel);
+            db[index] = { ...db[index], ...pData };
+        } else {
+            const p = { ...pData, id: Date.now(), estado: 'Ativo', bk2: false, bk5: false };
+            db.push(p);
+        }
+
+        localStorage.setItem('tb_final_excel_v1', JSON.stringify(db));
+        limparCampos();
+        fecharModais(); 
+        renderizar();
+    }
+
+    function editarPaciente() {
+        const p = db.find(x => x.id === idSel);
+        editando = true;
+        document.getElementById('modalRegTitle').innerText = "Editar Registo";
+        document.getElementById('btnSalvar').innerText = "💾 ATUALIZAR DADOS";
+        
+        document.getElementById('nid').value = p.nid;
+        document.getElementById('nome').value = p.nome;
+        document.getElementById('idade').value = p.idade;
+        document.getElementById('sexo').value = p.sexo;
+        document.getElementById('diagnostico').value = p.diagnostico || 'Bacteriológico';
+        document.getElementById('tipo_tb').value = p.tipo;
+        atualizarRegimes();
+        document.getElementById('regime').value = p.regime;
+        document.getElementById('hiv').value = p.hiv;
+        document.getElementById('data_inicio').value = p.inicio;
+
+        document.getElementById('modalStatus').style.display = 'none';
+        document.getElementById('modalRegisto').style.display = 'block';
+    }
+
+    function calcularData(base, dias) {
+        if(!base) return null;
+        let d = new Date(base);
+        d.setDate(d.getDate() + dias);
+        return d;
+    }
+
+    function renderizar() {
+        const lista = document.getElementById('lista');
+        const busca = document.getElementById('busca').value.toLowerCase();
+        const hoje = new Date();
+        lista.innerHTML = '';
+        let at=0, cu=0, ab=0, hi=0;
+
+        db.filter(x => x.nome.toLowerCase().includes(busca) || x.nid.includes(busca)).forEach(p => {
+            if(p.estado==='Ativo') at++; else if(p.estado==='Curado') cu++; else ab++;
+            if(p.hiv==='Positivo') hi++;
+
+            const d2 = calcularData(p.inicio, 53);
+            const d5 = calcularData(p.inicio, 145);
+            const alerta = (p.estado==='Ativo') && ((hoje > d2 && !p.bk2) || (hoje > d5 && !p.bk5));
+
+            lista.innerHTML += `
+                <div class="p-card ${alerta ? 'alerta-bk' : ''}" onclick="abrirStatus(${p.id})">
+                    <div style="font-size:10px; font-weight:900; color:#718096">NID: ${p.nid} | ${p.estado}</div>
+                    <div class="p-name">${p.nome}</div>
+                    <div style="font-size:10px; margin-bottom:5px; color:var(--accent)">Diag: ${p.diagnostico || 'N/A'}</div>
+                    <span class="tag" style="background:var(--primary)">${p.regime}</span>
+                    <span class="tag" style="background:${p.hiv==='Positivo'?'#DD6B20':'#718096'}">HIV ${p.hiv}</span>
+                    <div style="margin-top:10px; font-size:11px; font-weight:bold; border-top:1px solid #eee; padding-top:8px">
+                        <span style="color:${p.bk2?'var(--success)':(hoje>d2?'red':'gray')}">${p.bk2?'✅ BK2 FEITO':'🕒 BK2: '+(d2?d2.toLocaleDateString('pt-PT'):'-')}</span> | 
+                        <span style="color:${p.bk5?'var(--success)':(hoje>d5?'red':'gray')}">${p.bk5?'✅ BK5 FEITO':'🕒 BK5: '+(d5?d5.toLocaleDateString('pt-PT'):'-')}</span>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('at').innerText=at; document.getElementById('cu').innerText=cu;
+        document.getElementById('ab').innerText=ab; document.getElementById('hi').innerText=hi;
+    }
+
+    function abrirStatus(id) {
+        idSel = id; const p = db.find(x => x.id === id);
+        document.getElementById('st_nome').innerText = p.nome;
+        document.getElementById('st_nid').innerText = "NID: " + p.nid + " | DIAG: " + (p.diagnostico || 'Não informado');
+        document.getElementById('checkBK2').checked = p.bk2;
+        document.getElementById('checkBK5').checked = p.bk5;
+        document.getElementById('novoEstado').value = p.estado;
+        document.getElementById('modalStatus').style.display='block';
+    }
+
+    function confirmarStatus() {
+        const p = db.find(x => x.id === idSel);
+        p.bk2 = document.getElementById('checkBK2').checked;
+        p.bk5 = document.getElementById('checkBK5').checked;
+        p.estado = document.getElementById('novoEstado').value;
+        localStorage.setItem('tb_final_excel_v1', JSON.stringify(db));
+        fecharModais(); renderizar();
+    }
+
+    function exportarExcel(filtrado = false) {
+        let dados = db;
+        if(filtrado) {
+            const de = document.getElementById('f_de').value;
+            const ate = document.getElementById('f_ate').value;
+            dados = db.filter(p => (!de || p.inicio >= de) && (!ate || p.inicio <= ate));
+        }
+        if(dados.length === 0) return alert("Sem dados!");
+
+        let csv = "\uFEFFNID;Nome;Idade;Sexo;Diagnostico;Tipo;Regime;HIV;Inicio;Data BK2;Data BK5;Estado;BK2_Feito;BK5_Feito\n";
+        dados.forEach(p => {
+            const d2 = calcularData(p.inicio, 53).toLocaleDateString('pt-PT');
+            const d5 = calcularData(p.inicio, 145).toLocaleDateString('pt-PT');
+            csv += `${p.nid};${p.nome};${p.idade};${p.sexo};${p.diagnostico};${p.tipo};${p.regime};${p.hiv};${p.inicio};${d2};${d5};${p.estado};${p.bk2?'SIM':'NAO'};${p.bk5?'SIM':'NAO'}\n`;
+        });
+        
+        // Versão otimizada para WebApp (Base64 se necessário)
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = function() {
+            const base64data = reader.result;                
+            if (window.AndroidHandler) {
+                window.AndroidHandler.saveFile(base64data, filtrado ? "Relatorio_Datas.csv" : "Backup_Total.csv");
+            } else {
+                const link = document.createElement("a");
+                link.href = base64data;
+                link.download = filtrado ? "Relatorio_Datas.csv" : "Backup_Total.csv";
+                link.click();
+            }
+        }
+        fecharModais();
+    }
+
+    function importarExcel(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const linhas = e.target.result.split('\n');
+            const novos = [];
+            for(let i=1; i<linhas.length; i++) {
+                const c = linhas[i].split(';');
+                if(c.length < 10) continue;
+                novos.push({
+                    id: Date.now()+i, nid: c[0].replace('\uFEFF',''), nome: c[1], idade: c[2], sexo: c[3],
+                    diagnostico: c[4], tipo: c[5], regime: c[6], hiv: c[7], inicio: c[8], 
+                    estado: c[11] || 'Ativo',
+                    bk2: c[12] ? c[12].trim()==='SIM' : false, 
+                    bk5: c[13] ? c[13].trim()==='SIM' : false
+                });
+            }
+            if(confirm("Deseja substituir os dados atuais pelos da planilha?")) {
+                db = novos; localStorage.setItem('tb_final_excel_v1', JSON.stringify(db)); renderizar();
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function eliminarPaciente() {
+        if(confirm("Apagar este registo?")) { 
+            db = db.filter(x => x.id !== idSel); 
+            localStorage.setItem('tb_final_excel_v1', JSON.stringify(db)); 
+            fecharModais(); renderizar(); 
+        }
+    }
+
+    renderizar();
+</script>
+</body>
+</html>
